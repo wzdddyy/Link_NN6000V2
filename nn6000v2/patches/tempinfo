@@ -1,0 +1,19 @@
+#!/bin/sh
+# 获取CPU温度
+cpu_temp=$(cat /sys/devices/virtual/thermal/thermal_zone0/hwmon0/temp1_input 2>/dev/null | awk '{printf("%.1f°C", $0 / 1000)}')
+
+# 获取WiFi温度（分别读取5GHz和2.4GHz）
+wifi5_temp=$(cat /sys/devices/platform/soc@0/c000000.wifi/ieee80211/phy0/hwmon*/temp1_input 2>/dev/null | awk '{printf("%.1f°C", $0 / 1000)}')
+wifi2_temp=$(cat /sys/devices/platform/soc@0/c000000.wifi/ieee80211/phy1/hwmon*/temp1_input 2>/dev/null | awk '{printf("%.1f°C", $0 / 1000)}')
+
+# 输出结果
+if [ -n "$cpu_temp" ]; then
+    echo -n "CPU: $cpu_temp"
+    [ -n "$wifi5_temp" ] && echo -n " 5GHz: $wifi5_temp"
+    [ -n "$wifi2_temp" ] && echo -n " 2.4GHz: $wifi2_temp"
+elif [ -n "$wifi5_temp" ] || [ -n "$wifi2_temp" ]; then
+    [ -n "$wifi5_temp" ] && echo -n "5GHz: $wifi5_temp"
+    [ -n "$wifi2_temp" ] && echo -n " 2.4GHz: $wifi2_temp"
+else
+    echo -n "No temperature info"
+fi

@@ -1,27 +1,28 @@
 #!/bin/sh
-
 board_name=$(cat /tmp/sysinfo/board_name)
 
 configure_wifi() {
 	local radio=$1
-	local channel=$2
-	local htmode=$3
-	local txpower=$4
-	local ssid=$5
-	local key=$6
-	local encryption=${7:-"psk2+ccmp"} # 新增 encryption 参数，如果为空则默认为 psk2+ccmp
-	local now_encryption=$(uci get wireless.default_radio${radio}.encryption)
+	local band=$2
+	local channel=$3
+	local htmode=$4
+	local txpower=$5
+	local ssid=$6
+	local key=$7
+	local encryption=${8:-"psk2+ccmp"}
+	local now_encryption=$(uci get wireless.default_radio${radio}.encryption 2>/dev/null)
 	if [ -n "$now_encryption" ] && [ "$now_encryption" != "none" ]; then
 		return 0
 	fi
 	uci -q batch <<EOF
+set wireless.radio${radio}.band="${band}"
 set wireless.radio${radio}.channel="${channel}"
 set wireless.radio${radio}.htmode="${htmode}"
 set wireless.radio${radio}.mu_beamformer='1'
 set wireless.radio${radio}.country='US'
 set wireless.radio${radio}.txpower="${txpower}"
 set wireless.radio${radio}.cell_density='0'
-set wireless.radio${radio}.disabled='0'
+set wireless.radio${radio}.disabled='1'
 set wireless.default_radio${radio}.ssid="${ssid}"
 set wireless.default_radio${radio}.encryption="${encryption}"
 set wireless.default_radio${radio}.key="${key}"
@@ -35,10 +36,9 @@ EOF
 }
 
 link_nn6000v2_wifi_cfg() {
-	configure_wifi 0 1 HE20 20 '500/5' '147258369'
-	configure_wifi 1 149 HE80 22 '500/5' '147258369'
-	uci set wireless.radio0.disabled='1'
-	uci set wireless.radio1.disabled='1'
+	# WiFi 6配置
+	configure_wifi 0 '5g' 36 'HE80' 24 '500/5' '147258369'
+	configure_wifi 1 '2g' 1 'HT20' 22 '500/5' '147258369'
 }
 
 case "${board_name}" in

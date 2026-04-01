@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -e
 set -o errexit
 set -o errtrace
@@ -27,13 +26,13 @@ THEME_SET="argon"
 LAN_ADDR="10.0.0.1"
 
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
-BASE_PATH=${BASE_PATH:-$SCRIPT_DIR}
+BASE_PATH=${BASE_PATH:-$(dirname "$SCRIPT_DIR")}
 
-source "$SCRIPT_DIR/modules/general.sh"
-source "$SCRIPT_DIR/modules/feeds.sh"
-source "$SCRIPT_DIR/modules/packages.sh"
-source "$SCRIPT_DIR/modules/system.sh"
-source "$SCRIPT_DIR/modules/docker.sh"
+source "$SCRIPT_DIR/general.sh"
+source "$SCRIPT_DIR/feeds.sh"
+source "$SCRIPT_DIR/packages.sh"
+source "$SCRIPT_DIR/system.sh"
+source "$SCRIPT_DIR/docker.sh"
 
 
 main() {
@@ -92,6 +91,8 @@ main() {
     fix_opkg_check
     fix_quectel_cm
     install_pbr_cmcc
+    install_pbr_unicom
+    install_pbr_telecom
     fix_pbr_ip_forward
 }
 

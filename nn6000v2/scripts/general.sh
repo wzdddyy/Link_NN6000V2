@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Module: General Preparation
-
 clone_repo() {
     if [[ ! -d $BUILD_DIR ]]; then
         echo "克隆仓库: $REPO_URL 分支: $REPO_BRANCH"

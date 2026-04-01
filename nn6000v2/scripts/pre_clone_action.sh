@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
-
-# Determine wrt_core path
-if [ -d "wrt_core" ]; then
-    WRT_CORE_PATH="wrt_core"
-elif [ -d "../wrt_core" ]; then
-    WRT_CORE_PATH="../wrt_core"
+# Determine nn6000v2 path
+if [ -d "nn6000v2" ]; then
+    NN6000V2_PATH="nn6000v2"
+elif [ -d "../nn6000v2" ]; then
+    NN6000V2_PATH="../nn6000v2"
 else
-    # Fallback to script directory if wrt_core is current dir or relative
-    WRT_CORE_PATH=$(dirname "$0")
+    # Fallback to parent directory of script directory
+    NN6000V2_PATH=$(dirname "$(dirname "$0")")
 fi
 
-BASE_PATH=$(cd "$WRT_CORE_PATH" && pwd)
+BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
 
 Dev=$1
 
-INI_FILE="$BASE_PATH/compilecfg/$Dev.ini"
+INI_FILE="$BASE_PATH/configs/$Dev.ini"
 
 if [[ ! -f $INI_FILE ]]; then
     echo "INI file not found: $INI_FILE"
@@ -31,13 +30,13 @@ REPO_BRANCH=$(read_ini_by_key "REPO_BRANCH")
 REPO_BRANCH=${REPO_BRANCH:-main}
 # GitHub Actions usually runs in root of repo, so build dir should be relative to repo root
 # We need to construct absolute path or ensure context is correct.
-# Assuming this script is run from repo root or wrt_core.
-# Let's use relative path "action_build" next to wrt_core if possible or just use what works.
+# Assuming this script is run from repo root or nn6000v2.
+# Let's use relative path "action_build" next to nn6000v2 if possible or just use what works.
 # Original script used BASE_PATH/action_build.
 BUILD_DIR="$BASE_PATH/../action_build"
 
 echo $REPO_URL $REPO_BRANCH
-# Write flag one level up from wrt_core (repo root usually)
+# Write flag one level up from nn6000v2 (repo root usually)
 echo "$REPO_URL/$REPO_BRANCH" >"$BASE_PATH/../repo_flag"
 git clone --depth 1 -b $REPO_BRANCH $REPO_URL $BUILD_DIR
 

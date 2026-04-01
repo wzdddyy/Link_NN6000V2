@@ -1,5 +1,4 @@
 #!/bin/sh
-
 PPPOE_USERNAME="-"
 PPPOE_PASSWORD="-"
 

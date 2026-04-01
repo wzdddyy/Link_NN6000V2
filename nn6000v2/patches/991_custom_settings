@@ -1,0 +1,133 @@
+#!/bin/sh
+#===============================================================================
+# 991_custom_settings - System Custom Settings
+# 
+# 功能：系统启动时的自定义配置
+# 优化：改进错误处理、减少重复操作、优化日志输出
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# 配置参数
+#-------------------------------------------------------------------------------
+CONNTRACK_MAX=65535
+DROPBEAR_CONFIG="dropbear.main"
+
+#-------------------------------------------------------------------------------
+# 辅助函数：输出日志
+#-------------------------------------------------------------------------------
+log_info() {
+    echo "[INFO] $*"
+}
+
+log_error() {
+    echo "[ERROR] $*" >&2
+}
+
+#-------------------------------------------------------------------------------
+# 配置 nf_conntrack_max（最大连接跟踪数）
+#-------------------------------------------------------------------------------
+configure_conntrack() {
+    local current_value
+    local sysctl_conf="/etc/sysctl.conf"
+    local conf_key="net.netfilter.nf_conntrack_max"
+    
+    # 检查 sysctl 是否支持该参数
+    if ! sysctl -n "$conf_key" >/dev/null 2>&1; then
+        log_error "系统不支持 $conf_key 参数，跳过配置"
+        return 1
+    fi
+    
+    # 获取当前值
+    current_value=$(sysctl -n "$conf_key" 2>/dev/null)
+    
+    # 验证获取的值是否有效
+    if [ -z "$current_value" ] || ! [ "$current_value" -gt 0 ] 2>/dev/null; then
+        log_error "无法获取有效的 $conf_key 当前值"
+        return 1
+    fi
+    
+    # 如果当前值已大于等于目标值，无需修改
+    if [ "$current_value" -ge "$CONNTRACK_MAX" ]; then
+        log_info "nf_conntrack_max 当前值 ($current_value) 已满足要求"
+        return 0
+    fi
+    
+    log_info "当前 nf_conntrack_max=$current_value，目标值=$CONNTRACK_MAX，正在更新..."
+    
+    # 清理旧的配置
+    if [ -f "$sysctl_conf" ]; then
+        sed -i "/${conf_key}/d" "$sysctl_conf"
+    fi
+    
+    # 添加新配置
+    echo "${conf_key} = ${CONNTRACK_MAX}" >> "$sysctl_conf"
+    
+    # 应用配置
+    if sysctl -p >/dev/null 2>&1; then
+        log_info "nf_conntrack_max 已更新为 $CONNTRACK_MAX"
+        return 0
+    else
+        log_error "应用 sysctl 配置失败"
+        return 1
+    fi
+}
+
+#-------------------------------------------------------------------------------
+# 解除 dropbear SSH 访问限制
+#-------------------------------------------------------------------------------
+configure_dropbear() {
+    local config_section="$DROPBEAR_CONFIG"
+    
+    # 检查 dropbear 配置是否存在
+    if ! uci show "$config_section" >/dev/null 2>&1; then
+        log_error "dropbear 配置不存在，跳过"
+        return 1
+    fi
+    
+    # 检查是否存在 DirectInterface 限制
+    if ! uci show "$config_section" | grep -q "DirectInterface"; then
+        log_info "dropbear 未设置 DirectInterface 限制"
+        return 0
+    fi
+    
+    log_info "正在解除 dropbear DirectInterface 访问限制..."
+    
+    # 删除限制配置
+    if uci delete "${config_section}.DirectInterface" 2>/dev/null; then
+        # 提交更改
+        if uci commit "$config_section" 2>/dev/null; then
+            # 重启 dropbear 服务
+            if /etc/init.d/dropbear restart >/dev/null 2>&1; then
+                log_info "dropbear 访问限制已解除，服务已重启"
+                return 0
+            else
+                log_error "重启 dropbear 服务失败"
+                return 1
+            fi
+        else
+            log_error "提交 dropbear 配置失败"
+            return 1
+        fi
+    else
+        log_error "删除 DirectInterface 配置失败"
+        return 1
+    fi
+}
+
+#-------------------------------------------------------------------------------
+# 主函数
+#-------------------------------------------------------------------------------
+main() {
+    log_info "开始应用自定义系统配置..."
+    
+    # 配置连接跟踪
+    configure_conntrack
+    
+    # 配置 dropbear
+    configure_dropbear
+    
+    log_info "自定义配置应用完成"
+}
+
+# 执行主函数
+main

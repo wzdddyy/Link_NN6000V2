@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 update_feeds() {
     local FEEDS_PATH="$BUILD_DIR/$FEEDS_CONF"
     if [[ -f "$BUILD_DIR/feeds.conf" ]]; then

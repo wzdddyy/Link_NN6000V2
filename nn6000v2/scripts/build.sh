@@ -1,24 +1,23 @@
 #!/usr/bin/env bash
-
 set -e
 
-# Determine wrt_core path
-if [ -d "wrt_core" ]; then
-    WRT_CORE_PATH="wrt_core"
-elif [ -d "../wrt_core" ]; then
-    WRT_CORE_PATH="../wrt_core"
+# Determine nn6000v2 path
+if [ -d "nn6000v2" ]; then
+    NN6000V2_PATH="nn6000v2"
+elif [ -d "../nn6000v2" ]; then
+    NN6000V2_PATH="../nn6000v2"
 else
-    echo "Error: wrt_core directory not found!"
+    echo "Error: nn6000v2 directory not found!"
     exit 1
 fi
 
-BASE_PATH=$(cd "$WRT_CORE_PATH" && pwd)
+BASE_PATH=$(cd "$NN6000V2_PATH" && pwd)
 
 Dev=$1
 Build_Mod=$2
 
-CONFIG_FILE="$BASE_PATH/deconfig/$Dev.config"
-INI_FILE="$BASE_PATH/compilecfg/$Dev.ini"
+CONFIG_FILE="$BASE_PATH/configs/kernel/$Dev.config"
+INI_FILE="$BASE_PATH/configs/$Dev.ini"
 
 if [[ ! -f $CONFIG_FILE ]]; then
     echo "Config not found: $CONFIG_FILE"
@@ -52,12 +51,12 @@ apply_config() {
     
     if grep -qE "(ipq60xx|ipq807x)" "$BASE_PATH/../$BUILD_DIR/.config" &&
         ! grep -q "CONFIG_GIT_MIRROR" "$BASE_PATH/../$BUILD_DIR/.config"; then
-        cat "$BASE_PATH/deconfig/nss.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
+        cat "$BASE_PATH/configs/kernel/nss.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
     fi
 
-    cat "$BASE_PATH/deconfig/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
+    cat "$BASE_PATH/configs/kernel/docker_deps.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 
-    cat "$BASE_PATH/deconfig/proxy.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
+    cat "$BASE_PATH/configs/kernel/proxy.config" >> "$BASE_PATH/../$BUILD_DIR/.config"
 }
 
 REPO_URL=$(read_ini_by_key "REPO_URL")
@@ -71,10 +70,23 @@ if [[ -d action_build ]]; then
     BUILD_DIR="action_build"
 fi
 
-"$BASE_PATH/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
+"$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
 
 apply_config
 remove_uhttpd_dependency
+
+# Modify kernel size to 12MB for ipq60xx devices
+modify_kernel_size() {
+    local ipq60xx_mk_path="$BASE_PATH/../$BUILD_DIR/target/linux/qualcommax/image/ipq60xx.mk"
+    
+    if [ -f "$ipq60xx_mk_path" ]; then
+        # Change KERNEL_SIZE from 6144k to 12288k for link_nn6000 devices
+        sed -i '/link_nn6000-common/,/endef/{s/KERNEL_SIZE := 6144k/KERNEL_SIZE := 12288k/g}' "$ipq60xx_mk_path"
+        echo "Updated KERNEL_SIZE to 12288k (12MB) for link_nn6000 devices"
+    fi
+}
+
+modify_kernel_size
 
 cd "$BASE_PATH/../$BUILD_DIR"
 make defconfig

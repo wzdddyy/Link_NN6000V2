@@ -15,11 +15,11 @@
 
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
-| **LAN IP** | `10.0.0.1` | (wrt_core/patches/991_set_lanip.sh) |
-| **WiFi 名称** | `500/5` | (wrt_core/patches/992_set-wifi-uci.sh) |
+| **LAN IP** | `10.0.0.1` | (nn6000v2/patches/991_custom_settings) |
+| **WiFi 名称** | `500/5` | (nn6000v2/patches/992_set-wifi-uci.sh) |
 | **WiFi 密码** | `147258369` | 无线密码 |
 | **WiFi 状态** | **禁用** | 首次启动需手动开启 |
-| **PPPoE 账号** | **未配置** | (wrt_core/patches/993_set_pppoe.sh) |
+| **PPPoE 账号** | **未配置** | (nn6000v2/patches/993_set_pppoe.sh) |
 | **PPPoE 状态** | **自动拨号** | 首次启动自动配置 |
 
 ---
@@ -61,24 +61,14 @@
 ## 4. 项目结构
 
 ```
-wrt_release/
-├── wrt_core/              # 核心模块目录
-│   ├── compilecfg/        # 编译配置文件 (.ini)
-│   ├── deconfig/          # 默认配置文件 (.config)
-│   ├── modules/           # 模块化脚本
-│   │   ├── general.sh
-│   │   ├── feeds.sh
-│   │   ├── packages.sh
-│   │   └── system.sh
-│   ├── patches/           # 系统和软件包补丁
-│   │   ├── 991_set_lanip.sh
-│   │   ├── 992_set-wifi-uci.sh
-│   │   └── 993_set_pppoe.sh
-│   ├── scripts/           # 辅助脚本
-│   ├── update.sh          # 更新逻辑主入口
-│   └── pre_clone_action.sh # 预克隆操作
-├── build.sh               # 主编译脚本
-└── firmware/              # 固件输出目录
+Link_NN6000V2/
+└── nn6000v2/              # 设备专用目录
+    ├── patches/           # 设备补丁目录
+    │   ├── cpuusage       # CPU使用率补丁
+    │   └── tempinfo       # 温度信息补丁
+    └── scripts/           # 编译脚本目录
+        ├── build.sh       # 编译脚本
+        └── feeds.sh       # feeds配置脚本
 ```
 
 ---
