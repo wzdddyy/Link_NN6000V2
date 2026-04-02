@@ -115,6 +115,46 @@ configure_dropbear() {
 }
 
 #-------------------------------------------------------------------------------
+# 配置防火墙后端为 nftables
+#-------------------------------------------------------------------------------
+configure_firewall_backend() {
+    local firewall_config="firewall.@defaults[0]"
+    local target_backend="nftables"
+    
+    # 检查当前 firewall_backend 设置
+    local current_backend=$(uci -q get "${firewall_config}.firewall_backend")
+    
+    # 如果已经设置为 nftables，无需修改
+    if [ "$current_backend" = "$target_backend" ]; then
+        log_info "防火墙后端已设置为 $target_backend"
+        return 0
+    fi
+    
+    log_info "正在设置防火墙后端为 $target_backend..."
+    
+    # 设置 firewall_backend
+    if uci set "${firewall_config}.firewall_backend=$target_backend" 2>/dev/null; then
+        # 提交更改
+        if uci commit firewall 2>/dev/null; then
+            # 重启防火墙服务
+            if /etc/init.d/firewall restart >/dev/null 2>&1; then
+                log_info "防火墙后端已设置为 $target_backend，服务已重启"
+                return 0
+            else
+                log_error "重启防火墙服务失败"
+                return 1
+            fi
+        else
+            log_error "提交防火墙配置失败"
+            return 1
+        fi
+    else
+        log_error "设置 firewall_backend 失败"
+        return 1
+    fi
+}
+
+#-------------------------------------------------------------------------------
 # 主函数
 #-------------------------------------------------------------------------------
 main() {
@@ -125,6 +165,9 @@ main() {
     
     # 配置 dropbear
     configure_dropbear
+    
+    # 配置防火墙后端
+    configure_firewall_backend
     
     log_info "自定义配置应用完成"
 }
