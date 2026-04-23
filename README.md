@@ -3,8 +3,9 @@
 ## 1. 项目信息
 
 - **原脚本仓库**：<https://github.com/ZqinKing/wrt_release.git>
-- **源码来源**：<https://github.com/VIKINGYFY/immortalwrt.git> - main
+- **源码来源**：<https://github.com/VIKINGYFY/immortalwrt.git> - main 自带满血NSS驱动
 - **设备支持**：Link\_NN6000V2,内核分区12m
+- **固件发布**：每三天发布一次，包含最新源码和插件。
 
 ***
 
@@ -19,11 +20,11 @@
 | **WiFi 密码**  | `147258369` | 无线密码                                     |
 | **WiFi 状态**  | **禁用**      | 首次启动需手动开启                                |
 | **PPPoE 账号** | **未配置**     | (nn6000v2/patches/993\_set\_pppoe.sh)    |
-| **PPPoE 状态** | **自动拨号**    | 首次启动自动配置                                 |
+| **PPPoE 状态** | **自动拨号**    | 配置账号密码后自动拨号，无需手动开启                                 |
 
 ***
 
-### 2.2 预装插件（22 个）
+### 2.2 预装插件（20 个）
 
 | 插件名称                     | 功能说明          |
 | ------------------------ | ------------- |
@@ -46,7 +47,6 @@
 | **luci-app-quickfile**   | 文件管理          |
 | **luci-app-samba4**      | SMB 文件共享      |
 | **luci-app-pbr**         | 策略路由          |
-| **luci-app-wol**         | 网络唤醒          |
 | **luci-app-passwall**    | 科学上网          |
 
 ***
