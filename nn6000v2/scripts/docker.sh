@@ -365,12 +365,12 @@ _docker_stack_set_or_append_sysctl_value() {
 _docker_stack_update_dockerd_depends_block() {
     local mk_path="$1"
     local tmp_path
-
+    
     tmp_path=$(_docker_stack_mktemp) || return 1
-
+    
     awk '
         BEGIN { in_depends = 0; replaced = 0 }
-        /^[ \t]*DEPENDS:=\$\(GO_ARCH_DEPENDS\)[ \t]*\\?/ {
+        /^  DEPENDS:=\$\(GO_ARCH_DEPENDS\) \\$/ {
             in_depends = 1; replaced = 1
             print "  DEPENDS:=$(GO_ARCH_DEPENDS) \\" 
             print "    +ca-certificates \\" 
@@ -393,9 +393,12 @@ _docker_stack_update_dockerd_depends_block() {
         }
         in_depends { if ($0 ~ /@!\(mips\|\|mips64\|\|mipsel\)/) in_depends = 0; next }
         { print }
-        END { if (replaced == 0) { print "DEPENDS 块未找到，但继续执行" > "/dev/stderr" } }
-    ' "$mk_path" > "$tmp_path" 
-
+        END { if (replaced == 0) exit 2 }
+    ' "$mk_path" > "$tmp_path" || {
+        _docker_stack_log_error "未能重写 $mk_path 的 DEPENDS 块"
+        return 1
+    }
+    
     mv "$tmp_path" "$mk_path"
     _docker_stack_log_debug "已更新 dockerd Makefile 依赖"
 }
