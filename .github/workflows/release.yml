@@ -52,6 +52,9 @@ jobs:
           sudo docker system prune -a -f 2>/dev/null || true
           sudo rm -rf /var/lib/apt/lists/*
           
+          sudo dpkg --remove --force-remove-reinstreq firefox 2>/dev/null || true
+          sudo dpkg --configure -a 2>/dev/null || true
+          
           echo "=== Disk Space After Cleanup ==="
           df -h
           
