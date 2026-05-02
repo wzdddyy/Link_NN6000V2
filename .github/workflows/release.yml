@@ -30,30 +30,26 @@ jobs:
           # 步骤 1: 清理预装软件
           echo "=== Disk Space Before Cleanup ==="
           df -h
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/local/share/boost
           
-          # Android/移动开发
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /usr/share/swift
+          # 卸载不需要的包
+          sudo apt-get remove -y firefox chromium google-chrome-stable microsoft-edge-stable 2>/dev/null || true
+          sudo apt-get remove -y android-sdk-* android-tools-* 2>/dev/null || true
+          sudo apt-get remove -y dotnet-sdk-* dotnet-runtime-* 2>/dev/null || true
+          sudo apt-get remove -y openjdk-* 2>/dev/null || true
+          sudo apt-get remove -y azure-cli google-cloud-cli awscli 2>/dev/null || true
+          sudo apt-get remove -y powershell 2>/dev/null || true
+          sudo apt-get remove -y miniconda 2>/dev/null || true
+          sudo apt-get remove -y homebrew 2>/dev/null || true
+          sudo apt-get remove -y codeql 2>/dev/null || true
           
-          # 浏览器/多媒体
-          sudo rm -rf /usr/local/share/chromium
-          sudo rm -rf /usr/local/share/chrome
-          sudo rm -rf /usr/share/firefox
-          sudo rm -rf /usr/lib/firefox
-          sudo rm -rf /usr/local/share/ffmpeg
-          sudo rm -rf /usr/local/share/powershell
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo rm -rf /opt/microsoft
-          sudo docker image prune -a -f 2>/dev/null || true
-          sudo docker system prune -a -f 2>/dev/null || true
+          # 清理缓存和残留
+          sudo apt-get -y autoremove --purge
+          sudo apt-get -y autoclean
           sudo rm -rf /var/lib/apt/lists/*
           
-          sudo dpkg --remove --force-remove-reinstreq firefox 2>/dev/null || true
-          sudo dpkg --configure -a 2>/dev/null || true
+          # Docker 清理
+          sudo docker image prune -a -f 2>/dev/null || true
+          sudo docker system prune -a -f 2>/dev/null || true
           
           echo "=== Disk Space After Cleanup ==="
           df -h
