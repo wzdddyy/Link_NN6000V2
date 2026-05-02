@@ -42,15 +42,6 @@ jobs:
           sudo apt-get remove -y homebrew 2>/dev/null || true
           sudo apt-get remove -y codeql 2>/dev/null || true
           
-          # 清理缓存和残留
-          sudo apt-get -y autoremove --purge
-          sudo apt-get -y autoclean
-          sudo rm -rf /var/lib/apt/lists/*
-          
-          # Docker 清理
-          sudo docker image prune -a -f 2>/dev/null || true
-          sudo docker system prune -a -f 2>/dev/null || true
-          
           echo "=== Disk Space After Cleanup ==="
           df -h
           
