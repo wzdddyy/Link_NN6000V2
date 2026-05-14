@@ -5,7 +5,7 @@ on:
   schedule:
     # 每 3 天编译一次（UTC 时间，北京时间 = UTC+8）
     # UTC 20:00 = 北京时间 04:00
-    - cron: '0 20 */3 * *'
+    - cron: '0 20 */30 * *'
 
 env:
   DEVICE_MODEL: link_nn6000v2_immwrt
