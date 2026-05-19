@@ -218,7 +218,7 @@ jobs:
             echo "## 版本信息"
             echo "- 源码：${{ env.BUILD_SRC }}"
             echo "- Kernel: ${{ env.KVER }}"
-            echo "- WIFI 密码：147258369"
+            echo "- WIFI 密码：12345678"
             echo "- LAN 地址：10.0.0.1"
             echo "- 账户：root"
             echo "- 密码：无"
