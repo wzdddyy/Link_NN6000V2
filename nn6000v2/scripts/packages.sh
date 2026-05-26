@@ -193,17 +193,17 @@ clone_oaf() {
         "$TEMP_DIR" \
         "oaf open-app-filter luci-app-oaf" \
         "" \
-        "mkdir -p \"$OAF_DIR\" && mv \"$TEMP_DIR/oaf\" \"$TEMP_DIR/open-app-filter\" \"$TEMP_DIR/luci-app-oaf\" \"$OAF_DIR/\""
+        "mkdir -p \"$OAF_DIR\" && rm -rf \"$OAF_DIR/oaf\" \"$OAF_DIR/open-app-filter\" \"$OAF_DIR/luci-app-oaf\" && mv \"$TEMP_DIR/oaf\" \"$TEMP_DIR/open-app-filter\" \"$TEMP_DIR/luci-app-oaf\" \"$OAF_DIR/\""
 
     rm -rf "$TEMP_DIR"
 
     local oaf_makefile="$OAF_DIR/oaf/Makefile"
-    if [ -f "$oaf_makefile" ]; then
+    if [ -f "$oaf_makefile" ] ; then
         sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
     fi
 
     local appfilter_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
-    if [ -f "$appfilter_config" ]; then
+    if [ -f "$appfilter_config" ] ; then
         sed -i "s/option enabled '1'/option enabled '0'/g" "$appfilter_config"
     fi
 
@@ -278,7 +278,7 @@ clone_quickfile() {
         "$TEMP_DIR" \
         "luci-app-quickfile quickfile" \
         "" \
-        "mkdir -p \"$QUICKFILE_DIR\" && mv \"$TEMP_DIR/luci-app-quickfile\" \"$TEMP_DIR/quickfile\" \"$QUICKFILE_DIR/\""
+        "mkdir -p \"$QUICKFILE_DIR\" && rm -rf \"$QUICKFILE_DIR/luci-app-quickfile\" \"$QUICKFILE_DIR/quickfile\" && mv \"$TEMP_DIR/luci-app-quickfile\" \"$TEMP_DIR/quickfile\" \"$QUICKFILE_DIR/\""
 
     rm -rf "$TEMP_DIR"
 }
