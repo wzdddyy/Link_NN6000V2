@@ -66,38 +66,24 @@ clone_packages() {
 
 install_openwrt_packages() {
     ./scripts/feeds install -p openwrt_packages -f \
-        xray-core sing-box trojan-plus naiveproxy shadowsocks-libev v2ray-plugin geoview \
-        microsocks tcping chinadns-ng dns2socks resolveip \
         taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf oaf open-app-filter \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall \
+        luci-app-dockerman luci-app-quickfile \
+        luci-app-homeproxy luci-app-mini-diskmanager \
         luci-app-tailscale-community
 }
 
-clone_passwall() {
-    local PASSWALL_LUCI_DIR="$OPENWRT_PACKAGES_DIR/luci-app-passwall"
-    local PASSWALL_PACKAGES_DIR="$OPENWRT_PACKAGES_DIR/passwall-packages"
-    local TEMP_DIR="$OPENWRT_PACKAGES_DIR/openwrt-passwall-temp"
-    local PASSWALL_PKGS_TEMP="$OPENWRT_PACKAGES_DIR/passwall-packages-temp"
-    
-    clone_packages "luci-app-passwall" \
-        "${GITHUB_BASE}Openwrt-Passwall/openwrt-passwall.git" \
-        "$TEMP_DIR" \
-        "" \
-        "" \
-        "rm -rf \"$PASSWALL_LUCI_DIR\" 2>/dev/null || true; mv \"$TEMP_DIR/luci-app-passwall\" \"$PASSWALL_LUCI_DIR\"; rm -rf \"$TEMP_DIR\""
-    
-    rm -rf "$PASSWALL_PACKAGES_DIR" 2>/dev/null || true
-    
-    clone_packages "passwall-packages" \
-        "${GITHUB_BASE}Openwrt-Passwall/openwrt-passwall-packages.git" \
-        "$PASSWALL_PKGS_TEMP" \
-        "" \
-        "" \
-        "for pkg in \"$PASSWALL_PKGS_TEMP\"/*; do if [ -d \"\$pkg\" ]; then pkg_name=\$(basename \"\$pkg\"); mv \"\$pkg\" \"$OPENWRT_PACKAGES_DIR/\$pkg_name\"; fi; done; rm -rf \"$PASSWALL_PKGS_TEMP\""
+clone_homeproxy() {
+    local HOMEPROXY_DIR="$OPENWRT_PACKAGES_DIR/luci-app-homeproxy"
+
+    rm -rf "$HOMEPROXY_DIR" 2>/dev/null || true
+
+    clone_packages "luci-app-homeproxy" \
+        "${GITHUB_BASE}szwjp/luci-app-homeproxy.git" \
+        "$HOMEPROXY_DIR"
 }
 
 clone_lucky() {
@@ -220,22 +206,22 @@ EOF
     chmod +x "$disable_script"
 }
 
-clone_diskman() {
-    local path="$OPENWRT_PACKAGES_DIR/luci-app-diskman"
-    local repo_url="${GITHUB_BASE}lisaac/luci-app-diskman.git"
-    local temp_dir="$OPENWRT_PACKAGES_DIR/diskman"
-    
-    clone_packages "luci-app-diskman" \
-        "$repo_url" \
-        "$temp_dir" \
-        "applications/luci-app-diskman" \
+clone_mini_diskmanager() {
+    local MINI_DM_DIR="$OPENWRT_PACKAGES_DIR/luci-app-mini-diskmanager"
+    local TEMP_DIR="$OPENWRT_PACKAGES_DIR/mini-diskmanager-temp"
+
+    rm -rf "$MINI_DM_DIR" 2>/dev/null || true
+
+    clone_packages "luci-app-mini-diskmanager" \
+        "${GITHUB_BASE}4IceG/luci-app-mini-diskmanager.git" \
+        "$TEMP_DIR" \
+        "luci-app-mini-diskmanager" \
         "" \
         "" \
-        "$temp_dir/applications/luci-app-diskman" \
-        "$path"
-    
-    sed -i 's/fs-ntfs /fs-ntfs3 /g' "$path/Makefile"
-    sed -i '/ntfs-3g-utils /d' "$path/Makefile"
+        "$TEMP_DIR/luci-app-mini-diskmanager" \
+        "$MINI_DM_DIR"
+
+    rm -rf "$TEMP_DIR"
 }
 
 _sync_luci_lib_docker() {
