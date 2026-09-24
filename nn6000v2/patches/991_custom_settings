@@ -181,17 +181,44 @@ EOF
 }
 
 #-------------------------------------------------------------------------------
+# 配置 IPv6 DHCPv6 有状态分配
+#-------------------------------------------------------------------------------
+configure_ipv6_dhcpv6() {
+    log_info "正在配置 LAN IPv6 有状态 DHCPv6..."
+
+    uci -q batch << 'EOF'
+set dhcp.lan.dhcpv6='server'
+set dhcp.lan.ra='server'
+delete dhcp.lan.ra_flags
+add_list dhcp.lan.ra_flags='managed-config'
+add_list dhcp.lan.ra_flags='other-config'
+commit dhcp
+EOF
+
+    if [ $? -eq 0 ]; then
+        log_info "DHCPv6 有状态分配配置完成 (server + managed/other flags)"
+        return 0
+    else
+        log_error "DHCPv6 配置失败"
+        return 1
+    fi
+}
+
+#-------------------------------------------------------------------------------
 # 主函数
 #-------------------------------------------------------------------------------
 main() {
     log_info "开始应用自定义系统配置..."
-    
+
     # 配置连接跟踪
     configure_conntrack
-    
+
     # 配置 dropbear
     configure_dropbear
-    
+
+    # IPv6 有状态 DHCPv6
+    configure_ipv6_dhcpv6
+
     # 网络优化
     configure_network_optimization
 

@@ -111,6 +111,19 @@ boot() {
     fi
 
     crontab /etc/crontabs/root
+
+    # 保持 LAN IPv6 有状态 DHCPv6-[如不想持久化删除此段]
+    if [ "$(uci -q get dhcp.lan.ra)" != "server" ] || \
+       [ "$(uci -q get dhcp.lan.dhcpv6)" != "server" ] || \
+       [ "$(uci -q get dhcp.lan.ra_flags)" = "none" ]; then
+        uci set dhcp.lan.dhcpv6='server'
+        uci set dhcp.lan.ra='server'
+        uci -q delete dhcp.lan.ra_flags
+        uci add_list dhcp.lan.ra_flags='managed-config'
+        uci add_list dhcp.lan.ra_flags='other-config'
+        uci commit dhcp
+        /etc/init.d/odhcpd restart
+    fi
 }
 EOF
     chmod +x "$sh_dir/custom_task"
