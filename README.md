@@ -32,7 +32,7 @@
 | **luci-app-istorex**     | 应用商店          |
 | **luci-app-dockerman**   | Docker        |
 | **luci-app-adguardhome** | 广告过滤          |
-| **luci-app-diskman**     | 磁盘管理          |
+| **luci-app-mini_diskmanager**     | 磁盘管理          |
 | **luci-app-smartdns**    | DNS 加速        |
 | **luci-app-autoreboot**  | 定时重启          |
 | **luci-app-sqm**         | QoS 智能队列      |
@@ -47,7 +47,7 @@
 | **luci-app-quickfile**   | 文件管理          |
 | **luci-app-samba4**      | SMB 文件共享      |
 | **luci-app-pbr**         | 策略路由          |
-| **luci-app-passwall**    | 科学上网          |
+| **luci-app-homeproxy**    | 科学上网          |
 
 ***
 
