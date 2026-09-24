@@ -46,6 +46,7 @@ main() {
     clone_mini_diskmanager
     clone_dockerman
     clone_adguardhome
+    install_extra_feed_deps
     clone_easytier
     clone_oaf
     clone_luci_tailscale

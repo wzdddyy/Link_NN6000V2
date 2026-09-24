@@ -25,7 +25,7 @@ clone_packages() {
     local move_to="${8:-}"
     
     if [ -n "$pre_cmd" ]; then
-        (cd "$BUILD_DIR" && eval "$pre_cmd") || return 1
+        (cd "$BUILD_DIR" && eval "$pre_cmd") || exit 1
     fi
     
     rm -rf "$target_dir" 2>/dev/null || true
@@ -41,14 +41,14 @@ clone_packages() {
         if ! git sparse-checkout set $sparse_pattern; then
             echo "错误：稀疏检出 $sparse_pattern 失败" >&2
             popd >/dev/null
-            return 1
+            exit 1
         fi
         git checkout --quiet
         popd >/dev/null
         
         if [ -n "$move_from" ] && [ -n "$move_to" ]; then
             rm -rf "$move_to" 2>/dev/null || true
-            mv "$move_from" "$move_to" || return 1
+            mv "$move_from" "$move_to" || exit 1
         fi
     else
         if ! git clone --depth=1 "$repo_url" "$target_dir"; then
@@ -58,7 +58,7 @@ clone_packages() {
     fi
     
     if [ -n "$post_cmd" ]; then
-        (cd "$BUILD_DIR" && eval "$post_cmd") || return 1
+        (cd "$BUILD_DIR" && eval "$post_cmd") || exit 1
     fi
     
     echo "✓ $name 克隆完成"
@@ -77,43 +77,27 @@ install_openwrt_packages() {
 }
 
 clone_homeproxy() {
-    local HOMEPROXY_DIR="$OPENWRT_PACKAGES_DIR/luci-app-homeproxy"
-
-    rm -rf "$HOMEPROXY_DIR" 2>/dev/null || true
-
     clone_packages "luci-app-homeproxy" \
         "${GITHUB_BASE}szwjp/luci-app-homeproxy.git" \
-        "$HOMEPROXY_DIR"
+        "$OPENWRT_PACKAGES_DIR/luci-app-homeproxy"
 }
 
 clone_lucky() {
     local LUCKY_REPO="${GITHUB_BASE}gdy666/luci-app-lucky.git"
     local LUCKY_DIR="$OPENWRT_PACKAGES_DIR/lucky"
     local LUCI_APP_LUCKY_DIR="$OPENWRT_PACKAGES_DIR/luci-app-lucky"
-    local LUCKY_TEMP="$OPENWRT_PACKAGES_DIR/lucky-temp"
-    local LUCKI_APP_TEMP="$OPENWRT_PACKAGES_DIR/luci-app-lucky-temp"
+    local TEMP_DIR="$OPENWRT_PACKAGES_DIR/lucky-temp"
 
-    clone_packages "lucky" \
-        "$LUCKY_REPO" \
-        "$LUCKY_TEMP" \
-        "lucky" \
-        "" \
-        "" \
-        "$LUCKY_TEMP/lucky" \
-        "$LUCKY_DIR"
-
-    rm -rf "$LUCKY_TEMP"
+    rm -rf "$LUCKY_DIR" "$LUCI_APP_LUCKY_DIR" "$TEMP_DIR" 2>/dev/null || true
 
     clone_packages "luci-app-lucky" \
         "$LUCKY_REPO" \
-        "$LUCKI_APP_TEMP" \
-        "luci-app-lucky" \
-        "" \
-        "" \
-        "$LUCKI_APP_TEMP/luci-app-lucky" \
-        "$LUCI_APP_LUCKY_DIR"
+        "$TEMP_DIR" \
+        "lucky luci-app-lucky"
 
-    rm -rf "$LUCKI_APP_TEMP"
+    mv "$TEMP_DIR/lucky" "$LUCKY_DIR"
+    mv "$TEMP_DIR/luci-app-lucky" "$LUCI_APP_LUCKY_DIR"
+    rm -rf "$TEMP_DIR"
     
     local lucky_conf="$LUCKY_DIR/files/luckyuci"
     if [ -f "$lucky_conf" ]; then
@@ -150,11 +134,13 @@ clone_adguardhome() {
         "$OPENWRT_PACKAGES_DIR/luci-app-adguardhome"
 }
 
+install_extra_feed_deps() {
+    (cd "$BUILD_DIR" && ./scripts/feeds install -f luci-lib-jsonc kmod-ipt-conntrack kmod-ipt-nat)
+}
+
 clone_easytier() {
     local EASYTIER_DIR="$OPENWRT_PACKAGES_DIR/luci-app-easytier"
     local TEMP_DIR="$OPENWRT_PACKAGES_DIR/easytier-temp"
-
-    (cd "$BUILD_DIR" && ./scripts/feeds install -f luci-lib-jsonc)
 
     clone_packages "luci-app-easytier" \
         "${GITHUB_BASE}EasyTier/luci-app-easytier.git" \
@@ -173,8 +159,6 @@ clone_oaf() {
     local OAF_DIR="$OPENWRT_PACKAGES_DIR/OpenAppFilter"
     local TEMP_DIR="$OPENWRT_PACKAGES_DIR/oaf-temp"
 
-    (cd "$BUILD_DIR" && ./scripts/feeds install -f kmod-ipt-conntrack kmod-ipt-nat)
-    
     clone_packages "OpenAppFilter" \
         "$OAF_REPO" \
         "$TEMP_DIR" \
@@ -207,10 +191,7 @@ EOF
 }
 
 clone_mini_diskmanager() {
-    local MINI_DM_DIR="$OPENWRT_PACKAGES_DIR/luci-app-mini-diskmanager"
     local TEMP_DIR="$OPENWRT_PACKAGES_DIR/mini-diskmanager-temp"
-
-    rm -rf "$MINI_DM_DIR" 2>/dev/null || true
 
     clone_packages "luci-app-mini-diskmanager" \
         "${GITHUB_BASE}4IceG/luci-app-mini-diskmanager.git" \
@@ -219,32 +200,23 @@ clone_mini_diskmanager() {
         "" \
         "" \
         "$TEMP_DIR/luci-app-mini-diskmanager" \
-        "$MINI_DM_DIR"
+        "$OPENWRT_PACKAGES_DIR/luci-app-mini-diskmanager"
 
     rm -rf "$TEMP_DIR"
 }
 
 _sync_luci_lib_docker() {
-    local repo_url="${GITHUB_BASE}lisaac/luci-lib-docker.git"
-    local luci_lib_docker_dir="$OPENWRT_PACKAGES_DIR/luci-lib-docker"
-    
-    mkdir -p "$OPENWRT_PACKAGES_DIR" || return
-    
-    rm -rf "$luci_lib_docker_dir" 2>/dev/null || true
-    if ! git clone --depth=1 "$repo_url" "$luci_lib_docker_dir"; then
-        echo "错误：从 $repo_url 克隆 luci-lib-docker 仓库失败" >&2
-        exit 1
-    fi
-    
-    echo "✓ luci-lib-docker 克隆完成"
+    clone_packages "luci-lib-docker" \
+        "${GITHUB_BASE}lisaac/luci-lib-docker.git" \
+        "$OPENWRT_PACKAGES_DIR/luci-lib-docker"
 }
 
 clone_dockerman() {
     local path="$OPENWRT_PACKAGES_DIR/luci-app-dockerman"
     local repo_url="${GITHUB_BASE}wzdddyy/luci-app-dockerman.git"
     local temp_dir="$OPENWRT_PACKAGES_DIR/dockerman"
-    
-    _sync_luci_lib_docker || return
+
+    _sync_luci_lib_docker
     
     clone_packages "luci-app-dockerman" \
         "$repo_url" \
