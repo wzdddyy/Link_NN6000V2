@@ -226,7 +226,19 @@ fix_smartdns_makefile() {
     fi
 
     echo "正在修复 smartdns Makefile，移除 Rust UI 依赖..."
-    
+
+    local smartdns_ver apk_ver
+    smartdns_ver=$(sed -n 's/^PKG_VERSION:=//p' "$makefile" | head -n 1)
+    case "$smartdns_ver" in
+        *-RC*|*-rc*)
+            apk_ver=$(echo "$smartdns_ver" | sed 's/-[Rr][Cc]/_rc/')
+            echo "正在修正 smartdns 版本号：$smartdns_ver -> $apk_ver..."
+            sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=$apk_ver/" "$makefile"
+            sed -i "s|^PKG_SOURCE_URL:=.*|PKG_SOURCE_URL:=https://codeload.github.com/pymumu/smartdns/tar.gz/Release$smartdns_ver?|" "$makefile"
+            sed -i "s|^PKG_BUILD_DIR:=.*|PKG_BUILD_DIR:=\$(BUILD_DIR)/\$(PKG_NAME)-Release$smartdns_ver|" "$makefile"
+            ;;
+    esac
+
     # 删除 Rust package include
     sed -i '/rust-package.mk/d' "$makefile"
     # 删除 Rust 相关变量
