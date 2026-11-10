@@ -84,6 +84,7 @@ install_openwrt_packages() {
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome \
+        ghboost luci-app-ghboost \
         luci-app-oaf oaf open-app-filter \
         luci-app-dockerman luci-app-quickfile \
         luci-app-mini-diskmanager \
@@ -166,6 +167,24 @@ clone_adguardhome() {
     clone_packages "luci-app-adguardhome" \
         "${GITHUB_BASE}wzdddyy/luci-app-adguardhome.git" \
         "$OPENWRT_PACKAGES_DIR/luci-app-adguardhome"
+}
+
+clone_ghboost() {
+    local GHBOOST_REPO="${GITHUB_BASE}wzdddyy/luci-app-ghboost.git"
+    local GHBOOST_DIR="$OPENWRT_PACKAGES_DIR/ghboost"
+    local LUCI_APP_GHBOOST_DIR="$OPENWRT_PACKAGES_DIR/luci-app-ghboost"
+    local TEMP_DIR="$OPENWRT_PACKAGES_DIR/ghboost-temp"
+
+    rm -rf "$GHBOOST_DIR" "$LUCI_APP_GHBOOST_DIR" "$TEMP_DIR" 2>/dev/null || true
+
+    clone_packages "luci-app-ghboost" \
+        "$GHBOOST_REPO" \
+        "$TEMP_DIR" \
+        "ghboost luci-app-ghboost"
+
+    mv "$TEMP_DIR/ghboost" "$GHBOOST_DIR"
+    mv "$TEMP_DIR/luci-app-ghboost" "$LUCI_APP_GHBOOST_DIR"
+    rm -rf "$TEMP_DIR"
 }
 
 clone_zerotier() {

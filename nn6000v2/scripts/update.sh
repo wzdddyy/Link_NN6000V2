@@ -47,6 +47,7 @@ main() {
     clone_mini_diskmanager
     clone_dockerman
     clone_adguardhome
+    clone_ghboost
     clone_zerotier
     fix_zerotier_nonfree
     install_extra_feed_deps
