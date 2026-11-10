@@ -187,6 +187,23 @@ clone_ghboost() {
     rm -rf "$TEMP_DIR"
 }
 
+clone_dockerd_istoreos() {
+    local DOCKERD_DIR="$BUILD_DIR/feeds/packages/utils/dockerd"
+    local TEMP_DIR="$BUILD_DIR/feeds/packages/utils/dockerd-temp"
+
+    rm -rf "$DOCKERD_DIR" "$TEMP_DIR" 2>/dev/null || true
+
+    clone_packages "dockerd-istoreos" \
+        "${GITHUB_BASE}jjm2473/packages.git" \
+        "$TEMP_DIR" \
+        "utils/dockerd"
+
+    mv "$TEMP_DIR/utils/dockerd" "$DOCKERD_DIR"
+    rm -rf "$TEMP_DIR"
+
+    echo "✓ dockerd 已替换为 iStoreOS fork"
+}
+
 clone_zerotier() {
     clone_packages "luci-app-zerotier" \
         "${GITHUB_BASE}aimeeacker/luci-app-zerotier.git" \
