@@ -37,6 +37,22 @@ fix_kconfig_recursive_dependency() {
     fi
 }
 
+restore_libffi() {
+    local libffi_dir="$BUILD_DIR/package/libs/libffi"
+
+    if [ -d "$libffi_dir" ]; then
+        return 0
+    fi
+
+    if find "$BUILD_DIR/package/feeds" -maxdepth 3 -name "libffi" 2>/dev/null | grep -q .; then
+        echo "feeds 中已提供 libffi，跳过回补。"
+        return 0
+    fi
+
+    install -Dm644 "$BASE_PATH/patches/libffi/Makefile" "$libffi_dir/Makefile"
+    echo "已回补 libffi 包。"
+}
+
 update_default_lan_addr() {
     local CFG_PATH="$BUILD_DIR/package/base-files/files/bin/config_generate"
     if [ -f $CFG_PATH ]; then
