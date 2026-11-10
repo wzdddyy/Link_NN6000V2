@@ -25,7 +25,7 @@
 
 ***
 
-### 2.2 预装插件（20 个）
+### 2.2 预装插件（21 个）
 
 | 插件名称                     | 功能说明          |
 | ------------------------ | ------------- |
@@ -33,6 +33,7 @@
 | **luci-app-istorex**     | 应用商店          |
 | **luci-app-dockerman**   | Docker        |
 | **luci-app-adguardhome** | 广告过滤          |
+| **luci-app-ghboost**     | GitHub 加速       |
 | **luci-app-mini_diskmanager**     | 磁盘管理          |
 | **luci-app-smartdns**    | DNS 加速        |
 | **luci-app-autoreboot**  | 定时重启          |
