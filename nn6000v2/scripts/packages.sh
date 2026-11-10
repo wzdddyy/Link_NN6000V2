@@ -169,6 +169,12 @@ clone_adguardhome() {
         "$OPENWRT_PACKAGES_DIR/luci-app-adguardhome"
 }
 
+clone_luci_app_smartdns() {
+    clone_packages "luci-app-smartdns" \
+        "${GITHUB_BASE}pymumu/luci-app-smartdns.git" \
+        "$OPENWRT_PACKAGES_DIR/luci-app-smartdns"
+}
+
 clone_ghboost() {
     local GHBOOST_REPO="${GITHUB_BASE}wzdddyy/luci-app-ghboost.git"
     local GHBOOST_DIR="$OPENWRT_PACKAGES_DIR/ghboost"

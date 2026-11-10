@@ -47,6 +47,7 @@ main() {
     clone_mini_diskmanager
     clone_dockerman
     clone_adguardhome
+    clone_luci_app_smartdns
     clone_ghboost
     clone_dockerd_istoreos
     clone_zerotier

@@ -489,7 +489,19 @@ _docker_stack_update_dockerd_defaults() {
     
     dockerd_makefile=$(_docker_stack_resolve_component_makefile "$build_dir" "dockerd") || return 1
     dockerd_config=$(_docker_stack_resolve_dockerd_file "$build_dir" "files/etc/config/dockerd") || return 1
-    dockerd_sysctl=$(_docker_stack_resolve_dockerd_file "$build_dir" "files/etc/sysctl.d/sysctl-br-netfilter-ip.conf") || return 1
+    
+    local sysctl_rel="files/etc/sysctl.d/sysctl-br-netfilter-ip.conf"
+    local candidate
+    dockerd_sysctl=""
+    for candidate in \
+        "$build_dir/package/feeds/packages/dockerd/$sysctl_rel" \
+        "$build_dir/feeds/packages/utils/dockerd/$sysctl_rel"
+    do
+        [ -f "$candidate" ] && {
+            dockerd_sysctl="$candidate"
+            break
+        }
+    done
     
     [ -f "$dockerd_makefile" ] || {
         _docker_stack_log_error "未找到 dockerd Makefile: $dockerd_makefile"
@@ -497,10 +509,6 @@ _docker_stack_update_dockerd_defaults() {
     }
     [ -f "$dockerd_config" ] || {
         _docker_stack_log_error "未找到 dockerd 配置文件：$dockerd_config"
-        return 1
-    }
-    [ -f "$dockerd_sysctl" ] || {
-        _docker_stack_log_error "未找到 dockerd sysctl: $dockerd_sysctl"
         return 1
     }
     
@@ -519,9 +527,13 @@ _docker_stack_update_dockerd_defaults() {
     _docker_stack_fix_dockerd_nftables_comment "$dockerd_config"
     _docker_stack_log_info "dockerd 默认策略已应用"
     
-    _docker_stack_set_or_append_sysctl_value "$dockerd_sysctl" "net.ipv4.ip_forward" "1" || return 1
-    _docker_stack_set_or_append_sysctl_value "$dockerd_sysctl" "net.ipv6.conf.all.forwarding" "1" || return 1
-    _docker_stack_log_info "sysctl 网络转发已启用"
+    if [ -n "$dockerd_sysctl" ]; then
+        _docker_stack_set_or_append_sysctl_value "$dockerd_sysctl" "net.ipv4.ip_forward" "1" || return 1
+        _docker_stack_set_or_append_sysctl_value "$dockerd_sysctl" "net.ipv6.conf.all.forwarding" "1" || return 1
+        _docker_stack_log_info "sysctl 网络转发已启用"
+    else
+        _docker_stack_log_warn "未找到 dockerd sysctl 文件（iStoreOS fork 使用 hotplug 处理），跳过 sysctl 设置"
+    fi
 }
 
 #-------------------------------------------------------------------------------
