@@ -23,6 +23,12 @@ clone_packages() {
     local post_cmd="${6:-}"
     local move_from="${7:-}"
     local move_to="${8:-}"
+    local branch="${9:-}"
+    local clone_args=()
+    
+    if [ -n "$branch" ]; then
+        clone_args=(-b "$branch")
+    fi
     
     if [ -n "$pre_cmd" ]; then
         (cd "$BUILD_DIR" && eval "$pre_cmd") || exit 1
@@ -31,7 +37,7 @@ clone_packages() {
     rm -rf "$target_dir" 2>/dev/null || true
     
     if [ -n "$sparse_pattern" ]; then
-        if ! git clone --filter=blob:none --no-checkout "$repo_url" "$target_dir"; then
+        if ! git clone --filter=blob:none --no-checkout "${clone_args[@]}" "$repo_url" "$target_dir"; then
             echo "错误：从 $repo_url 克隆 $name 仓库失败" >&2
             exit 1
         fi
@@ -51,7 +57,7 @@ clone_packages() {
             mv "$move_from" "$move_to" || exit 1
         fi
     else
-        if ! git clone --depth=1 "$repo_url" "$target_dir"; then
+        if ! git clone --depth=1 "${clone_args[@]}" "$repo_url" "$target_dir"; then
             echo "错误：从 $repo_url 克隆 $name 仓库失败" >&2
             exit 1
         fi
@@ -202,7 +208,9 @@ clone_dockerd_istoreos() {
     clone_packages "dockerd-istoreos" \
         "${GITHUB_BASE}jjm2473/packages.git" \
         "$TEMP_DIR" \
-        "utils/dockerd"
+        "utils/dockerd" \
+        "" "" "" "" \
+        "istoreos-25.12"
 
     mv "$TEMP_DIR/utils/dockerd" "$DOCKERD_DIR"
     rm -rf "$TEMP_DIR"
