@@ -372,44 +372,29 @@ _docker_stack_fix_dockerd_vendored_checks() {
     if grep -q '\$(call EnsureVendoredVersion,' "$mk_path"; then
         _docker_stack_log_debug "检测到 vendored 版本检查，正在禁用严格验证..."
         
-        # 使用 awk 注释掉 Build/Prepare 中的所有版本验证
+
         awk '
-            BEGIN { in_prepare = 0; skip_lines = 0 }
-            /^define Build\/Prepare/ { in_prepare = 1; print; next }
-            in_prepare && /^endef$/ { in_prepare = 0; print; next }
-            
-            # 注释掉 EnsureVendoredVersion 调用（第 84-86 行）
-            in_prepare && /[[:space:]]*\$\(call EnsureVendoredVersion,/ {
-                print "#" $0 " # Disabled by docker_stack"
+            BEGIN { in_prepare = 0 }
+            /^define Build\/Prepare[[:space:]]*$/ {
+                in_prepare = 1
+                print
+                print "\t$(Build/Prepare/Default)"
                 next
             }
-            
-            # 处理 CLI 版本检查（第 89-95 行，共 7 行）
-            in_prepare && /[[:space:]]*CLI_MAKEFILE=/ {
-                print "#" $0 " # Disabled by docker_stack"
-                skip_lines = 6
-                next
-            }
-            
-            # 处理 PKG_GIT_SHORT_COMMIT 检查（第 98-103 行，共 6 行）
-            in_prepare && /[[:space:]]*EXPECTED_PKG_GIT_SHORT_COMMIT=/ {
-                print "#" $0 " # Disabled by docker_stack"
-                skip_lines = 5
-                next
-            }
-            
-            # 跳过需要注释的后续行
-            skip_lines > 0 {
-                print "#" $0 " # Disabled by docker_stack"
-                skip_lines--
-                next
-            }
-            
+            in_prepare && /^endef[[:space:]]*$/ { in_prepare = 0; print; next }
+            in_prepare { next }
             { print }
         ' "$mk_path" > "$tmp_path" || {
             _docker_stack_log_error "未能禁用 vendored 严格验证"
             return 1
         }
+        
+        if ! grep -q '^define Build/Prepare' "$tmp_path" || \
+           ! grep -q '\$(Build/Prepare/Default)' "$tmp_path" || \
+           grep -q '\$(call EnsureVendoredVersion,' "$tmp_path"; then
+            _docker_stack_log_error "重写后的 dockerd Makefile 缺少有效的 Build/Prepare"
+            return 1
+        fi
         
         mv "$tmp_path" "$mk_path"
         _docker_stack_log_debug "已禁用 vendored 版本检查"
